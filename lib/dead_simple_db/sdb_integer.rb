@@ -2,6 +2,8 @@ module DeadSimpleDb
 
   class SdbInteger
 
+    include NegativeNumber
+
     DEFAULT_OPTS = {:digits => 6}
 
     def initialize(value, opts={})
@@ -14,7 +16,9 @@ module DeadSimpleDb
     end
 
     def to_s
-      @string ||= casted.to_s.rjust(@opts[:digits], '0')
+      @string ||= prepending_minus(casted.to_s) do |string|
+        string.rjust(@opts[:digits], '0')
+      end
     end
 
   end

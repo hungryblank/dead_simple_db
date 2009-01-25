@@ -2,6 +2,8 @@ module DeadSimpleDb
 
   class SdbFloat
 
+    include NegativeNumber
+
     DEFAULT_OPTS = {:digits => 8, :decimals => 2}
 
     def initialize(value, opts={})
@@ -14,10 +16,10 @@ module DeadSimpleDb
     end
 
     def to_s
-      @string ||= begin
-        integer, decimal = *casted.to_s.split('.')
-        integer.rjust(@opts[:digits] - @opts[:decimals], '0') + '.' +
-        decimal[0..@opts[:decimals] - 1].ljust(@opts[:decimals], '0')
+      @string ||= prepending_minus(casted.to_s) do |string|
+          integer, decimal = *string.split('.')
+          integer.rjust(@opts[:digits] - @opts[:decimals], '0') + '.' +
+          decimal[0..@opts[:decimals] - 1].ljust(@opts[:decimals], '0')
       end
     end
 

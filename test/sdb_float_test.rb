@@ -29,4 +29,14 @@ class SdbFloatTest < Test::Unit::TestCase
     assert_equal '0100.11', float.to_s
   end
 
+  should "handle negative string" do
+    float = SdbFloat.new('-100.1', :digits => 6)
+    assert_equal '-0100.10', float.to_s
+  end
+
+  should "handle negative float" do
+    float = SdbFloat.new('-100.5', :digits => 6)
+    assert_equal '-0100.50', float.to_s
+  end
+
 end

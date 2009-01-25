@@ -24,4 +24,14 @@ class SdbIntegerTest < Test::Unit::TestCase
     assert_equal '000010', integer.to_s
   end
 
+  should "be padded and have minus if printed as string" do
+    integer = SdbInteger.new(-10, :digits => 6)
+    assert_equal '-000010', integer.to_s
+  end
+
+  should "handle minus if provided negative string" do
+    integer = SdbInteger.new('-15', :digits => 6)
+    assert_equal '-000015', integer.to_s
+  end
+
 end

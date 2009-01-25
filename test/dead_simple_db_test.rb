@@ -5,6 +5,8 @@ end
 
 class DeadSimpleDbTest < Test::Unit::TestCase
 
+  include DeadSimpleDb
+
   def setup
     @service = Mocha::Mock.new
     @arturo = Employee.new(:name => 'Arturo', :surname => 'Bandini')
@@ -38,13 +40,8 @@ class DeadSimpleDbTest < Test::Unit::TestCase
 
   should "have a serial based on timestamp" do
     Time.stubs(:now).returns(Time.utc(2000,"jan",1,20,15,1))
+    @arturo.expects(:serial_string).returns('nameArturosurnameBandini')
     assert_equal Digest::MD5.hexdigest('nameArturosurnameBandini946757701.0'), @arturo.serial
-  end
-
-  should "have a serial not based on timestamp if uniq index is specified" do
-    Employee.uniq(:name, :surname)
-    Time.stubs(:now).returns(Time.utc(2000,"jan",1,20,15,1))
-    assert_equal Digest::MD5.hexdigest('nameArturosurnameBandini'), @arturo.serial
   end
 
   should "get attributes when getting a specific record" do
@@ -63,6 +60,26 @@ class DeadSimpleDbTest < Test::Unit::TestCase
     Employee.expects(:find_ids).with(:all, "['name' = 'Arturo']", {}).returns(['e34979d4dc7b5b949fa67916acb63743'])
     Employee.expects(:get).with("e34979d4dc7b5b949fa67916acb63743")
     Employee.find(:all, "['name' = 'Arturo']")
+  end
+
+  should "instantiate an attribute definition when sdb_attr is called" do
+    AttributeDefinition.expects(:new).with(:number, 'Integer', :decimals => 10).returns('w')
+    attr_def_ary = Mocha::Mock.new
+    Employee.expects(:attr_definitions).returns(attr_def_ary)
+    attr_def_ary.expects('<<').with('w')
+    Employee.send(:attr_sdb, :number, 'Integer', :decimals => 10)
+  end
+
+  should "read attributes from hash with symbols or strings" do
+    attribute = @arturo.send(:attributes).find { |a| a.name == :name }
+    attribute.expects(:set).with('Arturo')
+    @arturo.update_attributes(:name => 'Arturo')
+    attribute.expects(:set).with('Arturo string')
+    @arturo.update_attributes('name' => 'Arturo string')
+  end
+
+  should "build methods to access attributes" do
+    assert_equal 'Arturo', @arturo.name
   end
 
 end

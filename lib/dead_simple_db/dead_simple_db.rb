@@ -23,12 +23,6 @@ module DeadSimpleDb
         @domain = domain
       end
 
-      #Specify a set of attributes that should be unique across all the records
-      def uniq(*args)
-        return @uniq if args == []
-        @uniq = args
-      end
-
       #Refresh the current connection to SimpleDB
       def reconnect!
         @service = AwsSdb::Service.new
@@ -51,7 +45,9 @@ module DeadSimpleDb
 
 
       def find(how_many, query, opts={})
-        find_ids(how_many, query, opts).map { |o| get(o) }
+        results = find_ids(how_many, query, opts).map { |o| get(o) }
+        return results.first if how_many == :first
+        results
       end
 
       def find_ids(how_many, query, opts={})
@@ -64,49 +60,66 @@ module DeadSimpleDb
         service.query(@domain, query, limit).first
       end
 
+      def attr_definitions
+        @attr_definitions ||= []
+      end
+
       private
 
         def attr_sdb(name, klass, opts={})
-          attributes << Attribute.new(name, klass, opts={})
-        end
-
-        def attributes
-          @attributes ||= []
+          define_method(name) do
+            attributes_hash[name.to_sym].value
+          end
+          define_method("#{name}=") do |value|
+            attributes_hash[name.to_sym].set(value)
+          end
+          attr_definitions << AttributeDefinition.new(name, klass, opts)
         end
 
     end
 
-    #Create a new object passing an hash
+    #Instantiates a new object passing an hash
     #
     #  new_employee = Emloyee.new(:name => 'Arturo', :surname => 'Bandini')
     #
     #please note that this does't stores the object on SimpleDB
     #it's the save method that performs the actual network operation of storing the data
-    def initialize(attributes_hash, opts={})
-      @attributes_hash = attributes_hash
+    def initialize(attributes_hash={}, opts={})
+      read_attributes(attributes_hash)
       @serial = opts[:serial]
+    end
+
+    def update_attributes(attributes_hash, opts={})
+      read_attributes(attributes_hash)
+    end
+
+    def attributes_hash
+      @attributes_hash ||= attributes.inject({}) do |hash, attribute|
+        hash[attribute.name] = attribute
+        hash
+      end
     end
 
     def attributes_hash_for_call
       attributes_hash.merge({:class_name => self.class.to_s})
     end
 
-    #Save the current record on SimpleDB
+    #Saves the current record on SimpleDB
     def save
       service.put_attributes(domain, serial, attributes_hash_for_call)
       serial
     end
 
-    #Delete the current record from SimpleDB
+    #Deletes the current record from SimpleDB
     def destroy
       service.delete_attributes(domain, serial)
     end
 
-    #The unique identifier fo the current record
+    #The unique identifier for the current record
     def serial
       @serial ||= begin
         serial = serial_string
-        serial << Time.now.to_f.to_s unless uniq
+        serial << Time.now.to_f.to_s
         Digest::MD5.hexdigest(serial)
       end
     end
@@ -121,13 +134,20 @@ module DeadSimpleDb
         self.class.domain
       end
 
-      def uniq
-        self.class.uniq
+      def serial_string
+        labels = attributes_hash.map { |k, v| k.to_s + v.to_s }.join('')
       end
 
-      def serial_string
-        labels = (@uniq || @attributes_hash.keys).map { |k| k.to_s }.sort
-        labels.inject('') { |s, l| s << (l + @attributes_hash[l.to_sym].to_s) }
+      def read_attributes(hash)
+        attribute_names = attributes.map { |a| a.name }
+        attribute_names.map! { |an| an.to_s } if hash.keys.first.is_a?(String)
+        attributes.each_with_index do |attribute, index|
+          attribute.set(hash[attribute_names[index]])
+        end
+      end
+
+      def attributes
+        @attributes ||= self.class.attr_definitions.map { |d| d.to_attr }
       end
 
   end
