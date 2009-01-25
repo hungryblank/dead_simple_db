@@ -2,6 +2,7 @@ require 'rake'
 require 'rake/testtask'
 require 'rake/rdoctask'
 require 'rcov/rcovtask'
+require 'yaml'
 
 begin
   require 'jeweler'

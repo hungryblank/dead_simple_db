@@ -1,9 +1,9 @@
 dead_simple_db
 ==============
 
-Description goes here.
+A object oriented interface to Amazon SimpleDB service from AWS
 
 COPYRIGHT
 =========
 
-Copyright (c) 2008 Paolo Negri. See LICENSE for details.
+Copyright (c) 2009 Paolo Negri. See LICENSE for details.
