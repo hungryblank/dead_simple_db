@@ -3,6 +3,44 @@ dead_simple_db
 
 A object oriented interface to Amazon SimpleDB service from AWS
 
+require 'dead_simple_db'
+
+#you need your Amazon AWS credentials defined in the environment
+
+ENV['AMAZON_ACCESS_KEY_ID'] = 'your access key'
+ENV['AMAZON_SECRET_ACCESS_KEY'] = 'your secret access key'
+
+class Client < DeadSimpleDb::Base
+
+  domain 'test_domain'
+
+  attr_sdb :first_name, 'String'
+  attr_sdb :last_name, 'String'
+  attr_sdb :budget, 'Integer', :digits => 9
+  attr_sdb :first_purchase, 'Time'
+
+end
+
+c = Client.new
+c.first_name = "Henry"
+c.last_name = "Chinaski"
+c.budget = 1000
+
+# that's how you save your first record on Amazon SimpleDB
+
+c.save
+
+# and that's how you fetch it
+
+henry = Client.find(:first, "['first_name' = 'Henry']")
+puts henry.first_name
+
+
+INSTALLATION
+============
+
+sudo gem install hungryblank-dead_simple_db -s http://gems.github.com
+
 COPYRIGHT
 =========
 

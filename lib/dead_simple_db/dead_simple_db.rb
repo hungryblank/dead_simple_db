@@ -38,18 +38,35 @@ module DeadSimpleDb
         service.create_domain(@domain)
       end
 
-      #Get a specific record identified by serial
+      #Gets a specific record identified by serial
+      #
+      # Employee.get("78af7ab2ebb10e71e7a936564621bbf3")
+      #
       def get(serial)
         new(service.get_attributes(@domain, serial), :serial => serial)
       end
 
-
+      #Lets you query the stored data
+      #
+      #to find the first employee who's name is Chuck
+      #
+      # Employee.find(:first, "['name' = 'Chuck']")
+      #
+      #to find all the employees who are designers
+      #
+      # Employee.find(:all, "['role' = 'designer']")
+      #
+      #please note the query syntax is SimpleDB custom syntax, refer to SimpleDB docs for details
+      #
       def find(how_many, query, opts={})
         results = find_ids(how_many, query, opts).map { |o| get(o) }
         return results.first if how_many == :first
         results
       end
 
+      #The same as find but instead of returning the full object just returns
+      #the object ids satisfyng the query
+      #
       def find_ids(how_many, query, opts={})
         limit = case how_many
           when :all : nil
@@ -89,6 +106,7 @@ module DeadSimpleDb
       @serial = opts[:serial]
     end
 
+    #Updates the attribute of the object using the hash passed as parameter
     def update_attributes(attributes_hash, opts={})
       read_attributes(attributes_hash)
     end
