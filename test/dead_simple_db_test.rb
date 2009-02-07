@@ -52,14 +52,14 @@ class DeadSimpleDbTest < Test::Unit::TestCase
   end
 
   should "issue a query when finding ids" do
-    @service.expects(:query).with('test_domain', "['name' = 'Arturo']", nil).returns(['e34979d4dc7b5b949fa67916acb63743'])
+    @service.expects(:query).with('test_domain', "['name' = 'Arturo']", nil).returns([['e34979d4dc7b5b949fa67916acb63743'], ''])
     Employee.find_ids(:all, "['name' = 'Arturo']")
   end
 
-  should "fetch ids and after get attributes when finding" do
-    Employee.expects(:find_ids).with(:all, "['name' = 'Arturo']", {}).returns(['e34979d4dc7b5b949fa67916acb63743'])
-    Employee.expects(:get).with("e34979d4dc7b5b949fa67916acb63743")
-    Employee.find(:all, "['name' = 'Arturo']")
+  should "issue a query with attributes when finding" do
+    @service.expects(:query_with_attributes).with('test_domain', "['name' = 'Arturo']", nil).returns([[{'name' => 'Arturo'}], ''])
+    results = Employee.find(:all, "['name' = 'Arturo']")
+    assert_equal 'Arturo', results.first.name
   end
 
   should "instantiate an attribute definition when sdb_attr is called" do

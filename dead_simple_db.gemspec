@@ -1,6 +1,6 @@
 Gem::Specification.new do |s|
   s.name = %q{dead_simple_db}
-  s.version = "0.0.1"
+  s.version = "0.0.2"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Paolo Negri"]
@@ -14,7 +14,7 @@ Gem::Specification.new do |s|
   s.require_paths = ["lib"]
   s.rubygems_version = %q{1.2.0}
   s.summary = %q{Object oriented library to store data in Amazon SimpleDB AWS}
-  s.add_dependency('aws-sdb')
+  s.add_dependency('aws-sdb', '>= 0.4.0')
 
   if s.respond_to? :specification_version then
     current_version = Gem::Specification::CURRENT_SPECIFICATION_VERSION

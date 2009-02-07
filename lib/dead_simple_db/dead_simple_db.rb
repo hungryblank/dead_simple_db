@@ -59,7 +59,8 @@ module DeadSimpleDb
       #please note the query syntax is SimpleDB custom syntax, refer to SimpleDB docs for details
       #
       def find(how_many, query, opts={})
-        results = find_ids(how_many, query, opts).map { |o| get(o) }
+        results, token = service.query_with_attributes(@domain, query, parse_limit(how_many))
+        results.map! { |hash| new(hash) }
         return results.first if how_many == :first
         results
       end
@@ -68,13 +69,8 @@ module DeadSimpleDb
       #the object ids satisfyng the query
       #
       def find_ids(how_many, query, opts={})
-        limit = case how_many
-          when :all : nil
-          when :first : 1
-        else
-          how_many
-        end
-        service.query(@domain, query, limit).first
+        ids, token = service.query(@domain, query, parse_limit(how_many))
+        ids
       end
 
       def attr_definitions
@@ -91,6 +87,15 @@ module DeadSimpleDb
             attributes_hash[name.to_sym].set(value)
           end
           attr_definitions << AttributeDefinition.new(name, klass, opts)
+        end
+
+        def parse_limit(how_many)
+          limit = case how_many
+            when :all : nil
+            when :first : 1
+          else
+            how_many
+          end
         end
 
     end
