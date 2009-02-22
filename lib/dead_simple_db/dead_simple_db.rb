@@ -60,7 +60,10 @@ module DeadSimpleDb
       #
       def find(how_many, query, opts={})
         results, token = service.query_with_attributes(@domain, query, parse_limit(how_many))
-        results.map! { |hash| new(hash) }
+        results.map! do |hash|
+          serial = hash.delete('Name')
+          new(hash, :serial => serial)
+        end
         return results.first if how_many == :first
         results
       end
